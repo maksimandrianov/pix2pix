@@ -43,7 +43,7 @@ class Pix2PixTrainer:
             "train", self.batch_size * 10 if test_mode else None, test_mode
         )
         self.val_loader = self._make_data_loader(
-            "train", self.batch_size * 2 if test_mode else None, test_mode
+            "val", self.batch_size * 2 if test_mode else None, test_mode
         )
 
         self.generator = Generator(IN_CHANNELS, OUT_CHANNELS, FILTERS).to(DEV)
@@ -227,7 +227,7 @@ class Pix2Pix:
         test_dataset = Dataset(
             root_dir=self.root_data_dir,
             dataset=self.dataset_name,
-            mode="train",
+            mode="test",
             direction=self.direction,
             max_items=10,
             test_mode=test_mode,

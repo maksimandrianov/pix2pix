@@ -12,6 +12,4 @@ if __name__ == "__main__":
     Pix2PixTrainer(".", "map_dataset", Direction.FORWARD, WEIGHT_PATH, EPOCHS, TEST_MODE).train(
         True
     )
-    Pix2Pix(
-        ".", "map_dataset", Direction.FORWARD, WEIGHT_PATH, TEST_MODE
-    ).test(True)
+    Pix2Pix(".", "map_dataset", Direction.FORWARD, WEIGHT_PATH, TEST_MODE).test(True)

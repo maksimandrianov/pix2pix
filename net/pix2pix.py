@@ -22,6 +22,17 @@ IN_CHANNELS = 3
 OUT_CHANNELS = 3
 
 
+def load_generator(path, generator):
+    filename = os.path.join(path, WEIGHT_FILENAME)
+    logger.info(f"Loading weights from {filename}..")
+    if not os.path.exists(filename):
+        raise FileNotFoundError(f"File does not exist {filename}")
+
+    checkpoint = torch.load(filename, map_location=DEV)
+    generator.load_state_dict(checkpoint)
+    return checkpoint
+
+
 class Pix2PixTrainer:
     def __init__(
         self,
@@ -60,6 +71,9 @@ class Pix2PixTrainer:
         self._optimization_init()
 
         self.stats = defaultdict(list)
+
+    def init_generator_from_weight_path(self):
+        return load_generator(self.weight_path, self.generator)
 
     def train(self, need_print=False):
         for epoch in range(self.epochs):
@@ -193,7 +207,7 @@ class Pix2Pix:
         self.test_loader = self._dataset_init(test_mode)
 
         self.generator = Generator(IN_CHANNELS, OUT_CHANNELS, FILTERS)
-        self._load()
+        self._load(self.generator)
         self.generator.to(DEV)
 
     def test(self, need_display=False):
@@ -233,12 +247,5 @@ class Pix2Pix:
         )
         return DataLoader(test_dataset, batch_size=1, shuffle=True, num_workers=CPU_COUNT)
 
-    def _load(self):
-        filename = os.path.join(self.weight_path, WEIGHT_FILENAME)
-        logger.info(f"Loading weights from {filename}..")
-        if not os.path.exists(filename):
-            raise FileNotFoundError(f"File does not exist {filename}")
-
-        checkpoint = torch.load(filename, map_location=DEV)
-        self.generator.load_state_dict(checkpoint)
-        return checkpoint
+    def _load(self, generator):
+        return load_generator(self.weight_path, generator)

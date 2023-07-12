@@ -22,7 +22,7 @@ def set_grad(nets, grad):
             param.requires_grad = grad
 
 
-def display(input_img, output_img):
+def display(input_img, output_img, path=None):
     input_img = input_img.detach().cpu().numpy()
     input_img = input_img.squeeze().transpose((1, 2, 0))
     input_img = (input_img * 255).astype("uint8")
@@ -38,3 +38,6 @@ def display(input_img, output_img):
     ax2.set_title("Output")
     ax2.imshow(output_img)
     plt.show()
+    if path is not None:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        plt.savefig(path)

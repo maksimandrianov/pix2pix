@@ -43,6 +43,7 @@ class Pix2PixTrainer:
         epochs,
         test_mode=False,
     ):
+        self.test_mode = test_mode
         self.root_data_dir = root_data_dir
         self.dataset_name = dataset_name
         self.direction = direction
@@ -88,19 +89,19 @@ class Pix2PixTrainer:
                 self._step_generator(input, fake_output, target)
                 torch.cuda.empty_cache()
 
-                logger.info(
-                    f"Train.. Epoch: {epoch}, iter: {i}, L1 loss:"
-                    f" {self.stats['l1'][-1] / self.l1_weight}, loss real:"
-                    f" {self.stats['loss_discriminator_real'][-1]}, loss fake:"
-                    f" {self.stats['loss_discriminator_fake'][-1]}"
-                )
+            logger.info(
+                f"Train.. Epoch: {epoch}, last L1 loss:"
+                f" {self.stats['l1'][-1] / self.l1_weight}, last loss real:"
+                f" {self.stats['loss_discriminator_real'][-1]}, last loss fake:"
+                f" {self.stats['loss_discriminator_fake'][-1]}"
+            )
 
             self._validate(epoch, need_print)
 
     def _save(self, state):
         filename = os.path.join(self.weight_path, WEIGHT_FILENAME)
         if not os.path.exists(self.weight_path):
-            os.mkdir(self.weight_path)
+            os.makedirs(self.weight_path, exist_ok=True)
 
         logger.info(f"Saving weights to {filename}..")
         torch.save(state, filename)
@@ -179,10 +180,14 @@ class Pix2PixTrainer:
 
             val_loss = self.L1_loss(output, target)
             loss += val_loss
-            logger.info(f"Validate.. Epoch: {epoch}, iter: {i}, L1 loss: {val_loss.item()}")
+
+            if self.test_mode:
+                logger.info(f"Validate.. Epoch: {epoch}, iter: {i}, L1 loss: {val_loss.item()}")
 
             if need_print and i == 0:
-                display(input[0], output[0])
+                display(
+                    input[0], output[0], os.path.join(self.weight_path, "images", f"{epoch}.png")
+                )
 
         logger.info(f"Epoch: {epoch}, epoch loss: {loss.item() / len(self.val_loader)}")
         if loss < self.best_v_loss:

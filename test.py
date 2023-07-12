@@ -6,10 +6,10 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 
 WEIGHT_PATH = "bin"
 TEST_MODE = True
+EPOCHS = 10 if TEST_MODE else 100
 
 if __name__ == "__main__":
-    epochs = 10 if TEST_MODE else 100
-    Pix2PixTrainer(".", "map_dataset", Direction.FORWARD, WEIGHT_PATH, epochs, TEST_MODE).train(
+    Pix2PixTrainer(".", "map_dataset", Direction.FORWARD, WEIGHT_PATH, EPOCHS, TEST_MODE).train(
         True
     )
     # Pix2Pix(

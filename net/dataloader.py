@@ -66,4 +66,4 @@ class Dataset(TDataset):
         elif self.direction != Direction.FORWARD:
             raise RuntimeError(f"Unknown direction {self.direction}")
 
-        return input, target
+        return {"input": input, "target": target}

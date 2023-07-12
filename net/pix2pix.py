@@ -229,7 +229,6 @@ class Pix2Pix:
             dataset=self.dataset_name,
             mode="test",
             direction=self.direction,
-            max_items=10,
             test_mode=test_mode,
         )
         return DataLoader(test_dataset, batch_size=1, shuffle=True, num_workers=CPU_COUNT)

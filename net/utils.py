@@ -22,7 +22,7 @@ def set_grad(nets, grad):
             param.requires_grad = grad
 
 
-def display(input_img, output_img, gif_path):
+def display(input_img, output_img):
     input_img = input_img.detach().cpu().numpy()
     input_img = input_img.squeeze().transpose((1, 2, 0))
     input_img = (input_img * 255).astype("uint8")

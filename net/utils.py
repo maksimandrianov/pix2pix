@@ -37,3 +37,4 @@ def display(input_img, output_img):
     ax2 = fig.add_subplot(1, 2, 2)
     ax2.set_title("Output")
     ax2.imshow(output_img)
+    plt.show()

@@ -40,7 +40,6 @@ class Pix2PixTrainer:
         dataset_name,
         direction: Direction,
         weight_path,
-        epochs,
         test_mode=False,
     ):
         self.test_mode = test_mode
@@ -48,11 +47,10 @@ class Pix2PixTrainer:
         self.dataset_name = dataset_name
         self.direction = direction
         self.batch_size = 16 if test_mode else 32
-        self.epochs = epochs
         self.weight_path = weight_path
 
         self.train_loader = self._make_data_loader(
-            "train", self.batch_size * 10 if test_mode else None, test_mode
+            "train", self.batch_size * 1 if test_mode else None, test_mode
         )
         self.val_loader = self._make_data_loader(
             "val", self.batch_size * 2 if test_mode else None, test_mode
@@ -61,7 +59,7 @@ class Pix2PixTrainer:
         self.generator = Generator(IN_CHANNELS, OUT_CHANNELS, FILTERS).to(DEV)
         self.discriminator = Discriminator(IN_CHANNELS + OUT_CHANNELS, FILTERS).to(DEV)
 
-        self.iter_switch = 5
+        self.iter_switch = 10
         self.L1_loss = torch.nn.L1Loss()
         self.l1_weight = 100
         self.best_v_loss = math.inf
@@ -72,12 +70,13 @@ class Pix2PixTrainer:
         self._optimization_init()
 
         self.stats = defaultdict(list)
+        self.last_epoch = 0
 
     def init_generator_from_weight_path(self):
         return load_generator(self.weight_path, self.generator)
 
-    def train(self, need_print=False):
-        for epoch in range(self.epochs):
+    def train(self, epochs=10, need_print=False):
+        for epoch in range(self.last_epoch, self.last_epoch + epochs):
             self.generator.train()
             self.discriminator.train()
             for i, batch in enumerate(self.train_loader):
@@ -97,6 +96,7 @@ class Pix2PixTrainer:
             )
 
             self._validate(epoch, need_print)
+            self.last_epoch = epoch
 
     def _save(self, state):
         filename = os.path.join(self.weight_path, WEIGHT_FILENAME)
@@ -124,8 +124,8 @@ class Pix2PixTrainer:
         )
 
     def _optimization_init(self):
-        self.opt_generator = torch.optim.Adam(self.generator.parameters(), lr=5e-4)
-        self.opt_discriminator = torch.optim.Adam(self.discriminator.parameters(), lr=5e-4)
+        self.opt_generator = torch.optim.Adam(self.generator.parameters(), lr=1e-4)
+        self.opt_discriminator = torch.optim.Adam(self.discriminator.parameters(), lr=1e-4)
 
         self.loss_generator = GANLoss("lsgan").to(DEV)
         self.loss_discriminator = GANLoss("lsgan").to(DEV)
@@ -162,7 +162,7 @@ class Pix2PixTrainer:
         l1 = self.L1_loss(fake_output, target) * self.l1_weight
         loss_generator = l1 + loss_generator_GAN
 
-        loss_generator.backward()
+        loss_generator.backward(retain_graph=True)
         self.opt_generator.step()
 
         self.stats["l1"].append(l1.item())
@@ -181,13 +181,10 @@ class Pix2PixTrainer:
             val_loss = self.L1_loss(output, target)
             loss += val_loss
 
-            if self.test_mode:
-                logger.info(f"Validate.. Epoch: {epoch}, iter: {i}, L1 loss: {val_loss.item()}")
-
+            logger.debug(f"Validate.. Epoch: {epoch}, iter: {i}, L1 loss: {val_loss.item()}")
             if need_print and i == 0:
-                display(
-                    input[0], output[0], os.path.join(self.weight_path, "images", f"{epoch}.png")
-                )
+                path = os.path.join(self.weight_path, "images", f"{epoch}.png")
+                display(input[0], output[0], target[0], path)
 
         loss_avg = loss.item() / len(self.val_loader)
         self.stats["loss_validation"].append(loss_avg)
@@ -230,9 +227,9 @@ class Pix2Pix:
             test_loss = L1_loss(output, target)
             t_loss += test_loss
             if need_display:
-                display(input, output)
+                display(input, output, target)
 
-            logger.info(f"Test.. Iter: {i}, L1 loss: {test_loss.item()}")
+            logger.debug(f"Test.. Iter: {i}, L1 loss: {test_loss.item()}")
         logger.info(f"Test.. Loss: {t_loss.item() / len(self.test_loader)}")
 
     def transfer_style(self, image_path, need_display=False):

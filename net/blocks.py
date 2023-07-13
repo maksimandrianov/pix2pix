@@ -23,7 +23,7 @@ class UpSampleBlock(nn.Module):
             nn.BatchNorm2d(filters),
         ]
         if drop_out:
-            sequence += [nn.Dropout(0.3)]
+            sequence += [nn.Dropout(0.4)]
 
         sequence += [nn.LeakyReLU()]
         self.sequence = nn.Sequential(*sequence)
@@ -78,7 +78,7 @@ class Generator(nn.Module):
 class Discriminator(nn.Module):
     def __init__(self, input_channels, filters):
         super(Discriminator, self).__init__()
-        layers = 4
+        layers = 3
         sequence = [
             nn.Conv2d(input_channels, filters, 4, 2, 1),
             nn.LeakyReLU(0.2, inplace=True),

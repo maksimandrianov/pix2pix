@@ -81,14 +81,14 @@ class MapDataScrapper:
         driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
         paths = self.create_dirs(path)
         for path, count in paths:
-            for i in range(853, count):
+            for i in range(count):
                 ll = self.generate_ll()
                 self.save_screenshot(driver, ll, False, path, i)
                 self.save_screenshot(driver, ll, True, path, i)
 
 
 if __name__ == "__main__":
-    m = MapDataScrapper(512, 1100, 0, 0)
+    m = MapDataScrapper(512, 1000, 100, 10)
     m.generate_dataset(
         os.path.join(os.path.abspath(os.path.dirname(__file__)), "..", "map_dataset")
     )

@@ -189,7 +189,9 @@ class Pix2PixTrainer:
                     input[0], output[0], os.path.join(self.weight_path, "images", f"{epoch}.png")
                 )
 
-        logger.info(f"Epoch: {epoch}, epoch loss: {loss.item() / len(self.val_loader)}")
+        loss_avg = loss.item() / len(self.val_loader)
+        self.stats["loss_validation"].append(loss_avg)
+        logger.info(f"Epoch: {epoch}, epoch loss: {loss_avg}")
         if loss < self.best_v_loss:
             self.best_v_loss = loss
             self._save(self.generator.state_dict())

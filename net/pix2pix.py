@@ -46,7 +46,7 @@ class Pix2PixTrainer:
         self.root_data_dir = root_data_dir
         self.dataset_name = dataset_name
         self.direction = direction
-        self.batch_size = 16
+        self.batch_size = 10
         self.weight_path = weight_path
 
         self.train_loader = self._make_data_loader(

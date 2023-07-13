@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class Direction(Enum):
-    FORWARD = (0,)
+    FORWARD = 0
     BACKWARD = 1
 
 

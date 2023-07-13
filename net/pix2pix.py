@@ -50,7 +50,7 @@ class Pix2PixTrainer:
         self.weight_path = weight_path
 
         self.train_loader = self._make_data_loader(
-            "train", self.batch_size * 1 if test_mode else None, test_mode
+            "train", self.batch_size * 10 if test_mode else None, test_mode
         )
         self.val_loader = self._make_data_loader(
             "val", self.batch_size * 2 if test_mode else None, test_mode
@@ -59,6 +59,7 @@ class Pix2PixTrainer:
         self.generator = Generator(IN_CHANNELS, OUT_CHANNELS, FILTERS).to(DEV)
         self.discriminator = Discriminator(IN_CHANNELS + OUT_CHANNELS, FILTERS).to(DEV)
 
+        self.learning_rate = 2e-5
         self.iter_switch = 10
         self.L1_loss = torch.nn.L1Loss()
         self.l1_weight = 100
@@ -124,8 +125,10 @@ class Pix2PixTrainer:
         )
 
     def _optimization_init(self):
-        self.opt_generator = torch.optim.Adam(self.generator.parameters(), lr=1e-4)
-        self.opt_discriminator = torch.optim.Adam(self.discriminator.parameters(), lr=1e-4)
+        self.opt_generator = torch.optim.Adam(self.generator.parameters(), lr=self.learning_rate)
+        self.opt_discriminator = torch.optim.Adam(
+            self.discriminator.parameters(), lr=self.learning_rate
+        )
 
         self.loss_generator = GANLoss("lsgan").to(DEV)
         self.loss_discriminator = GANLoss("lsgan").to(DEV)
@@ -162,7 +165,7 @@ class Pix2PixTrainer:
         l1 = self.L1_loss(fake_output, target) * self.l1_weight
         loss_generator = l1 + loss_generator_GAN
 
-        loss_generator.backward(retain_graph=True)
+        loss_generator.backward()
         self.opt_generator.step()
 
         self.stats["l1"].append(l1.item())

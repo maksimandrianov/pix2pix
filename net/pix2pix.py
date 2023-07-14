@@ -172,8 +172,8 @@ class Pix2PixTrainer:
 
         loss_avg = np.mean(loss)
         self.stats.push_metric("generator_loss_l1_validation", loss_avg)
-        if loss < self.best_v_loss:
-            self.best_v_loss = loss
+        if loss_avg < self.best_v_loss:
+            self.best_v_loss = loss_avg
             self._save(self.generator.state_dict())
 
 

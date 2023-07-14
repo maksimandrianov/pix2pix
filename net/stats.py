@@ -57,4 +57,4 @@ class LearningStats:
             if k.startswith(ITER_PREFIX):
                 new_k = k.replace(ITER_PREFIX, "", 1)
                 self.stats[new_k].append(np.mean(self.stats[k]))
-                self.stats[k].clear()
+                self.stats[k] = []

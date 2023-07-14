@@ -38,16 +38,16 @@ class LearningStats:
             color="g",
             label="generator_loss_l1_validation",
         )
-        plt.xlabel("Loss")
-        plt.ylabel("Epoch")
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
         plt.title("Learning and Validation")
         plt.legend()
         plt.show()
 
         plt.plot(self.stats["discriminator_loss_real"], color="r", label="discriminator_loss_real")
         plt.plot(self.stats["discriminator_loss_fake"], color="g", label="discriminator_loss_fake")
-        plt.xlabel("Loss")
-        plt.ylabel("Epoch")
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
         plt.title("Real and Fake")
         plt.legend()
         plt.show()

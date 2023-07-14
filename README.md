@@ -1,6 +1,7 @@
 ## Pix2Pix Network
 
 ### Learning process
+Images from the validation dataset at different epochs
 ![Pix2Pix Training](https://github.com/maksimandrianov/pix2pix/blob/main/bin/0_learn_progress.gif?raw=true)
 
 ### Prepare Weights
@@ -19,7 +20,7 @@ EPOCHS = 100
 p2p_tr = Pix2PixTrainer(".", "map_dataset", Direction.FORWARD, WEIGHT_PATH)
 p2p_tr.train(EPOCHS, True)
 
-# Test
+# Or Test with weights loaded
 p2p = Pix2Pix(".", "map_dataset", Direction.FORWARD, WEIGHT_PATH)
 p2p.test(True)
 # p2p.transfer_style(your_photo, True)

@@ -4,6 +4,8 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 import numpy as np
 
+from net.utils import rescale
+
 logger = logging.getLogger(__name__)
 
 ITER_PREFIX = "__"
@@ -32,23 +34,47 @@ class LearningStats:
         self.stats[name].append(value)
 
     def plot(self):
-        plt.plot(self.stats["generator_loss_l1"], color="r", label="generator_loss_l1")
+        self._plot()
+        epochs = len(self.stats["generator_loss_l1"])
+        if epochs > 70:
+            self._plot(60)
+
+    def _plot(self, from_=0):
+        epochs = len(self.stats["generator_loss_l1"])
+        indexes = range(from_, epochs)
         plt.plot(
-            self.stats["generator_loss_l1_validation"],
+            indexes,
+            rescale(self.stats["generator_loss_l1"][from_:]),
+            color="r",
+            label="generator_loss_l1",
+        )
+        plt.plot(
+            indexes,
+            rescale(self.stats["generator_loss_l1_validation"][from_:]),
             color="g",
             label="generator_loss_l1_validation",
         )
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
-        plt.title("Learning and Validation")
+        plt.title(f"Learning and Validation {indexes}-{epochs}")
         plt.legend()
         plt.show()
 
-        plt.plot(self.stats["discriminator_loss_real"], color="r", label="discriminator_loss_real")
-        plt.plot(self.stats["discriminator_loss_fake"], color="g", label="discriminator_loss_fake")
+        plt.plot(
+            indexes,
+            self.stats["discriminator_loss_real"][from_:],
+            color="r",
+            label="discriminator_loss_real",
+        )
+        plt.plot(
+            indexes,
+            self.stats["discriminator_loss_fake"][from_:],
+            color="g",
+            label="discriminator_loss_fake",
+        )
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
-        plt.title("Real and Fake")
+        plt.title(f"Real and Fake {indexes}-{epochs}")
         plt.legend()
         plt.show()
 

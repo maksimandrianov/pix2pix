@@ -1,6 +1,8 @@
 import os
 
 import matplotlib.pyplot as plt
+import numpy as np
+import torch
 
 
 def get_files(path, prefix):
@@ -21,7 +23,13 @@ def set_grad(nets, grad):
             param.requires_grad = grad
 
 
-def display(input_img, output_img, target_img=None, path=None):
+def rescale(data, new_min=0, new_max=1):
+    if not isinstance(data, (np.ndarray, torch.Tensor)):
+        data = np.array(data)
+    return (data - data.min()) / (data.max() - data.min()) * (new_max - new_min) + new_min
+
+
+def display(input_img, output_img, target_img=None, path=None, epoch=None, only_save=False):
     input_img = input_img.detach().cpu().numpy()
     input_img = input_img.squeeze().transpose((1, 2, 0))
     fig = plt.figure()
@@ -45,7 +53,13 @@ def display(input_img, output_img, target_img=None, path=None):
         target_img = target_img * 0.5 + 0.5
         ax3.imshow(target_img)
 
-    plt.show()
+    if epoch is not None:
+        fig.suptitle(f"Epoch {epoch}")
+
     if path is not None:
         os.makedirs(os.path.dirname(path), exist_ok=True)
         fig.savefig(path)
+
+    plt.close(fig)
+    if not only_save:
+        plt.show()

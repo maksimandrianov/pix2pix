@@ -88,7 +88,7 @@ class MapDataScrapper:
 
 
 if __name__ == "__main__":
-    m = MapDataScrapper(512, 1000, 100, 10)
+    m = MapDataScrapper(512)
     m.generate_dataset(
         os.path.join(os.path.abspath(os.path.dirname(__file__)), "..", "map_dataset")
     )

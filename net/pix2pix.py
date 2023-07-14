@@ -46,6 +46,7 @@ class Pix2PixTrainer:
         self.val_loader = self._make_data_loader(
             "val", self.batch_size * 2 if debug_mode else None
         )
+        self.demo_loader = self._make_data_loader("test", self.batch_size, False, False)
 
         self.generator = Generator(IN_CHANNELS, OUT_CHANNELS, FILTERS).to(DEV)
         self.discriminator = Discriminator(IN_CHANNELS + OUT_CHANNELS, FILTERS).to(DEV)
@@ -78,6 +79,7 @@ class Pix2PixTrainer:
 
             self.stats.finish_epoch()
             self._validate(epoch, need_print)
+            self._make_demo(epoch)
             self.last_epoch = epoch + 1
 
     def plot(self):
@@ -91,7 +93,7 @@ class Pix2PixTrainer:
         logger.info(f"Saving weights to {filename}..")
         torch.save(state, filename)
 
-    def _make_data_loader(self, mode, max_items):
+    def _make_data_loader(self, mode, max_items, drop_last=True, shuffle=True):
         dataset = Dataset(
             self.root_data_dir,
             self.dataset_name,
@@ -102,19 +104,21 @@ class Pix2PixTrainer:
         return DataLoader(
             dataset,
             self.batch_size,
-            shuffle=True,
+            shuffle=shuffle,
             num_workers=CPU_COUNT,
-            drop_last=True,
+            drop_last=drop_last,
         )
 
     def _optimization_init(self):
-        self.opt_generator = torch.optim.Adam(self.generator.parameters(), lr=self.learning_rate)
+        self.opt_generator = torch.optim.Adam(
+            self.generator.parameters(), lr=self.learning_rate, betas=(0.5, 0.999)
+        )
         self.opt_discriminator = torch.optim.Adam(
-            self.discriminator.parameters(), lr=self.learning_rate
+            self.discriminator.parameters(), lr=self.learning_rate, betas=(0.5, 0.999)
         )
 
-        self.loss_generator = nn.BCELoss().to(DEV)
-        self.loss_discriminator = nn.BCELoss().to(DEV)
+        self.loss_generator = nn.BCEWithLogitsLoss().to(DEV)
+        self.loss_discriminator = nn.BCEWithLogitsLoss().to(DEV)
 
     def _step_discriminator(self, input, fake_output, target, i):
         set_grad(self.discriminator, True)
@@ -168,13 +172,24 @@ class Pix2PixTrainer:
 
             if need_print and i == 0:
                 path = os.path.join(self.weight_path, "images", f"{epoch}.png")
-                display(input[0], output[0], target[0], path)
+                display(input[0], output[0], target[0], path, epoch)
 
         loss_avg = np.mean(loss)
         self.stats.push_metric("generator_loss_l1_validation", loss_avg)
         if loss_avg < self.best_v_loss:
             self.best_v_loss = loss_avg
             self._save(self.generator.state_dict())
+
+    def _make_demo(self, epoch):
+        self.generator.eval()
+        for i, batch in enumerate(self.demo_loader):
+            input = batch["input"].to(DEV)
+            target = batch["target"].to(DEV)
+            with torch.no_grad():
+                output = self.generator(input)
+                for index, (input, output, target) in enumerate(zip(input, output, target)):
+                    path = os.path.join(self.weight_path, "demo_images", f"{index}_{epoch}.png")
+                    display(input, output, target, path, epoch, only_save=True)
 
 
 class Pix2Pix:
@@ -228,7 +243,7 @@ class Pix2Pix:
             root_dir=self.root_data_dir,
             dataset=self.dataset_name,
             mode="test",
-            direction=self.direction
+            direction=self.direction,
         )
         return DataLoader(test_dataset, batch_size=1, shuffle=True, num_workers=CPU_COUNT)
 

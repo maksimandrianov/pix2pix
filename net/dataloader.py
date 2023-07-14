@@ -11,6 +11,8 @@ from net.utils import get_files
 
 logger = logging.getLogger(__name__)
 
+IMAGE_SIZE = (256, 256)
+
 
 class Direction(Enum):
     FORWARD = 0
@@ -18,25 +20,29 @@ class Direction(Enum):
 
 
 class Transformer:
-    def __init__(self):
-        self.base_transform = transforms.Compose(
-            [
-                transforms.Resize((312, 312)),
-                transforms.ToTensor(),
-                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-            ]
-        )
+    def __init__(self, random_crop=True):
+        self.random_crop = random_crop
+        transform_list = [
+            transforms.Resize((312, 312)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+        ]
+        if not random_crop:
+            transform_list.append(transforms.CenterCrop(IMAGE_SIZE))
+        self.base_transform = transforms.Compose(transform_list)
 
     def apply_base_transform(self, path):
         return self.base_transform(Image.open(path))
 
     def __call__(self, image1, image2=None):
         image1 = self.apply_base_transform(image1)
-        i, j, h, w = transforms.RandomCrop.get_params(image1, output_size=(256, 256))
-        image1 = TF.crop(image1, i, j, h, w)
+        i, j, h, w = transforms.RandomCrop.get_params(image1, output_size=IMAGE_SIZE)
+        if self.random_crop:
+            image1 = TF.crop(image1, i, j, h, w)
         if image2 is not None:
             image2 = self.apply_base_transform(image2)
-            image2 = TF.crop(image2, i, j, h, w)
+            if self.random_crop:
+                image2 = TF.crop(image2, i, j, h, w)
             return image1, image2
 
         return image1
@@ -50,9 +56,10 @@ class Dataset(TDataset):
         mode="train",
         direction=Direction.FORWARD,
         max_items=None,
+        random_crop=True,
     ):
         self.direction = direction
-        self.transformer = Transformer()
+        self.transformer = Transformer(random_crop)
         file_path = os.path.join(root_dir, dataset)
         file_path_mode = os.path.join(file_path, mode)
 

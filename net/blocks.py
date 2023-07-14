@@ -8,7 +8,7 @@ class DownSampleBlock(nn.Module):
         self.sequence = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, 4, 2, 1, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(0.2),
+            nn.LeakyReLU(0.2, True),
         )
 
     def forward(self, x):
@@ -63,6 +63,7 @@ class Generator(nn.Module):
     def forward(self, x):
         skip_conns = []
         for encode in self.encoder:
+            print(encode)
             x = encode(x)
             skip_conns.append(x)
 
@@ -91,9 +92,8 @@ class Discriminator(nn.Module):
         sequence += [
             nn.Conv2d(filters * mult_prev, filters * mult, 4, 1, 1),
             nn.BatchNorm2d(filters * mult),
-            nn.LeakyReLU(0.2),
+            nn.LeakyReLU(0.2, True),
             nn.Conv2d(filters * mult, 1, 4, 1, 1),
-            nn.Sigmoid(),
         ]
 
         self.sequence = nn.Sequential(*sequence)

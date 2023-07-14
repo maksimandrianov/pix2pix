@@ -21,7 +21,7 @@ class Transformer:
     def __init__(self):
         self.base_transform = transforms.Compose(
             [
-                transforms.Resize((512, 512)),
+                transforms.Resize((312, 312)),
                 transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             ]

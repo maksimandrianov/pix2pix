@@ -32,7 +32,7 @@ class LearningStats:
         self.stats[name].append(value)
 
     def plot(self):
-        plt.plot(self.stats["generator_loss_total"], color="r", label="generator_loss_total")
+        plt.plot(self.stats["generator_loss_l1"], color="r", label="generator_loss_l1")
         plt.plot(
             self.stats["generator_loss_l1_validation"],
             color="g",

@@ -1,5 +1,4 @@
 import os
-import time
 
 import matplotlib.pyplot as plt
 
@@ -28,14 +27,14 @@ def display(input_img, output_img, target_img=None, path=None):
     fig = plt.figure()
     ax1 = fig.add_subplot(1, 3, 1)
     ax1.set_title("Input")
-    input_img = input_img / 2 + 0.5
+    input_img = input_img * 0.5 + 0.5
     ax1.imshow(input_img)
 
     output_img = output_img.detach().cpu().numpy()
     output_img = output_img.squeeze().transpose((1, 2, 0))
     ax2 = fig.add_subplot(1, 3, 2)
     ax2.set_title("Output")
-    output_img = output_img / 2 + 0.5
+    output_img = output_img * 0.5 + 0.5
     ax2.imshow(output_img)
 
     if target_img is not None:
@@ -43,7 +42,7 @@ def display(input_img, output_img, target_img=None, path=None):
         target_img = target_img.squeeze().transpose((1, 2, 0))
         ax3 = fig.add_subplot(1, 3, 3)
         ax3.set_title("Target")
-        target_img = target_img / 2 + 0.5
+        target_img = target_img * 0.5 + 0.5
         ax3.imshow(target_img)
 
     plt.show()

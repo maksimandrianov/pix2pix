@@ -41,12 +41,13 @@ class Pix2PixTrainer:
         direction: Direction,
         weight_path,
         debug_mode=False,
+        batch_size=10
     ):
         self.debug_mode = debug_mode
         self.root_data_dir = root_data_dir
         self.dataset_name = dataset_name
         self.direction = direction
-        self.batch_size = 10
+        self.batch_size = batch_size
         self.weight_path = weight_path
 
         self.train_loader = self._make_data_loader(

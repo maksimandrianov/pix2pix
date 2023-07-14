@@ -2,6 +2,7 @@ import logging
 import os
 from enum import Enum
 
+import torchvision.transforms.functional as TF
 from PIL import Image
 from torch.utils.data import Dataset as TDataset
 from torchvision import transforms
@@ -17,17 +18,28 @@ class Direction(Enum):
 
 
 class Transformer:
-    def __init__(self, debug_mode):
-        self.transform = transforms.Compose(
+    def __init__(self):
+        self.base_transform = transforms.Compose(
             [
-                transforms.CenterCrop((256, 256) if debug_mode else (512, 512)),
+                transforms.Resize((512, 512)),
                 transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             ]
         )
 
-    def __call__(self, path):
-        return self.transform(Image.open(path))
+    def apply_base_transform(self, path):
+        return self.base_transform(Image.open(path))
+
+    def __call__(self, image1, image2=None):
+        image1 = self.apply_base_transform(image1)
+        i, j, h, w = transforms.RandomCrop.get_params(image1, output_size=(256, 256))
+        image1 = TF.crop(image1, i, j, h, w)
+        if image2 is not None:
+            image2 = self.apply_base_transform(image2)
+            image2 = TF.crop(image2, i, j, h, w)
+            return image1, image2
+
+        return image1
 
 
 class Dataset(TDataset):
@@ -38,10 +50,9 @@ class Dataset(TDataset):
         mode="train",
         direction=Direction.FORWARD,
         max_items=None,
-        debug_mode=False,
     ):
         self.direction = direction
-        self.transformer = Transformer(debug_mode)
+        self.transformer = Transformer()
         file_path = os.path.join(root_dir, dataset)
         file_path_mode = os.path.join(file_path, mode)
 
@@ -59,8 +70,7 @@ class Dataset(TDataset):
         return len(self.lfiles)
 
     def __getitem__(self, item):
-        input = self.transformer(self.lfiles[item])
-        target = self.transformer(self.rfiles[item])
+        input, target = self.transformer(self.lfiles[item], self.rfiles[item])
         if self.direction == Direction.BACKWARD:
             input, target = target, input
         elif self.direction != Direction.FORWARD:

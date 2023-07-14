@@ -4,11 +4,11 @@ import os
 from collections import defaultdict
 
 import torch
+from torch import nn
 from torch.utils.data import DataLoader
 
 from net.blocks import Discriminator, Generator
 from net.dataloader import Dataset, Direction, Transformer
-from net.loss import GANLoss
 from net.utils import display, set_grad
 
 logger = logging.getLogger(__name__)
@@ -22,17 +22,6 @@ IN_CHANNELS = 3
 OUT_CHANNELS = 3
 
 
-def load_generator(path, generator):
-    filename = os.path.join(path, WEIGHT_FILENAME)
-    logger.info(f"Loading weights from {filename}..")
-    if not os.path.exists(filename):
-        raise FileNotFoundError(f"File does not exist {filename}")
-
-    checkpoint = torch.load(filename, map_location=DEV)
-    generator.load_state_dict(checkpoint)
-    return checkpoint
-
-
 class Pix2PixTrainer:
     def __init__(
         self,
@@ -41,7 +30,7 @@ class Pix2PixTrainer:
         direction: Direction,
         weight_path,
         debug_mode=False,
-        batch_size=10
+        batch_size=16,
     ):
         self.debug_mode = debug_mode
         self.root_data_dir = root_data_dir
@@ -51,18 +40,17 @@ class Pix2PixTrainer:
         self.weight_path = weight_path
 
         self.train_loader = self._make_data_loader(
-            "train", self.batch_size * 10 if debug_mode else None, debug_mode
+            "train", self.batch_size * 10 if debug_mode else None
         )
         self.val_loader = self._make_data_loader(
-            "val", self.batch_size * 2 if debug_mode else None, debug_mode
+            "val", self.batch_size * 2 if debug_mode else None
         )
 
         self.generator = Generator(IN_CHANNELS, OUT_CHANNELS, FILTERS).to(DEV)
         self.discriminator = Discriminator(IN_CHANNELS + OUT_CHANNELS, FILTERS).to(DEV)
 
         self.learning_rate = 2e-5
-        self.iter_switch = 10
-        self.L1_loss = torch.nn.L1Loss()
+        self.L1_loss = nn.L1Loss()
         self.l1_weight = 100
         self.best_v_loss = math.inf
         self.loss_discriminator = None
@@ -73,9 +61,6 @@ class Pix2PixTrainer:
 
         self.stats = defaultdict(list)
         self.last_epoch = 0
-
-    def init_generator_from_weight_path(self):
-        return load_generator(self.weight_path, self.generator)
 
     def train(self, epochs=10, need_print=False):
         for epoch in range(self.last_epoch, self.last_epoch + epochs):
@@ -108,14 +93,13 @@ class Pix2PixTrainer:
         logger.info(f"Saving weights to {filename}..")
         torch.save(state, filename)
 
-    def _make_data_loader(self, mode, max_items, debug_mode):
+    def _make_data_loader(self, mode, max_items):
         dataset = Dataset(
             root_dir=self.root_data_dir,
             dataset=self.dataset_name,
             mode=mode,
             direction=self.direction,
             max_items=max_items,
-            debug_mode=debug_mode,
         )
         return DataLoader(
             dataset,
@@ -131,8 +115,8 @@ class Pix2PixTrainer:
             self.discriminator.parameters(), lr=self.learning_rate
         )
 
-        self.loss_generator = GANLoss("lsgan").to(DEV)
-        self.loss_discriminator = GANLoss("lsgan").to(DEV)
+        self.loss_generator = nn.BCELoss().to(DEV)
+        self.loss_discriminator = nn.BCELoss().to(DEV)
 
     def _step_discriminator(self, input, fake_output, target, i):
         set_grad(self.discriminator, True)
@@ -141,11 +125,11 @@ class Pix2PixTrainer:
         fake_batch = torch.cat((input, fake_output), 1)
         fake_batch = fake_batch.detach()
         pred_fake = self.discriminator(fake_batch)
-        loss_discriminator_fake = self.loss_discriminator(pred_fake, i % self.iter_switch == 0)
+        loss_discriminator_fake = self.loss_discriminator(pred_fake, torch.ones_like(pred_fake))
 
         real_batch = torch.cat((input, target), 1)
         pred_real = self.discriminator(real_batch)
-        loss_discriminator_real = self.loss_discriminator(pred_real, i % self.iter_switch != 0)
+        loss_discriminator_real = self.loss_discriminator(pred_real, torch.zeros_like(pred_real))
 
         loss_discriminator_total = 0.5 * (loss_discriminator_fake + loss_discriminator_real)
         loss_discriminator_total.backward()
@@ -161,8 +145,7 @@ class Pix2PixTrainer:
 
         fake_batch = torch.cat((input, fake_output), 1)
         pred_fake = self.discriminator(fake_batch)
-
-        loss_generator_GAN = self.loss_generator(pred_fake, True)
+        loss_generator_GAN = self.loss_generator(pred_fake, torch.ones_like(pred_fake))
         l1 = self.L1_loss(fake_output, target) * self.l1_weight
         loss_generator = l1 + loss_generator_GAN
 
@@ -219,7 +202,7 @@ class Pix2Pix:
         self.generator.to(DEV)
 
     def test(self, need_display=False):
-        L1_loss = torch.nn.L1Loss()
+        L1_loss = nn.L1Loss()
         t_loss = 0
         self.generator.eval()
         for i, batch in enumerate(self.test_loader):
@@ -256,4 +239,11 @@ class Pix2Pix:
         return DataLoader(test_dataset, batch_size=1, shuffle=True, num_workers=CPU_COUNT)
 
     def _load(self, generator):
-        return load_generator(self.weight_path, generator)
+        filename = os.path.join(self.weight_path, WEIGHT_FILENAME)
+        logger.info(f"Loading weights from {filename}..")
+        if not os.path.exists(filename):
+            raise FileNotFoundError(f"File does not exist {filename}")
+
+        checkpoint = torch.load(filename, map_location=DEV)
+        generator.load_state_dict(checkpoint)
+        return checkpoint

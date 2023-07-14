@@ -48,4 +48,4 @@ def display(input_img, output_img, target_img=None, path=None):
     plt.show()
     if path is not None:
         os.makedirs(os.path.dirname(path), exist_ok=True)
-        plt.savefig(path)
+        fig.savefig(path)

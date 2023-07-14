@@ -49,7 +49,7 @@ class Pix2PixTrainer:
         self.generator = Generator(IN_CHANNELS, OUT_CHANNELS, FILTERS).to(DEV)
         self.discriminator = Discriminator(IN_CHANNELS + OUT_CHANNELS, FILTERS).to(DEV)
 
-        self.learning_rate = 2e-5
+        self.learning_rate = 1e-4
         self.L1_loss = nn.L1Loss()
         self.l1_weight = 100
         self.best_v_loss = math.inf
@@ -131,7 +131,7 @@ class Pix2PixTrainer:
         pred_real = self.discriminator(real_batch)
         loss_discriminator_real = self.loss_discriminator(pred_real, torch.zeros_like(pred_real))
 
-        loss_discriminator_total = 0.5 * (loss_discriminator_fake + loss_discriminator_real)
+        loss_discriminator_total = loss_discriminator_fake + loss_discriminator_real
         loss_discriminator_total.backward()
         self.opt_discriminator.step()
 

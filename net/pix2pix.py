@@ -1,7 +1,6 @@
 import logging
 import math
 import os
-from collections import defaultdict
 
 import torch
 from torch import nn
@@ -9,6 +8,7 @@ from torch.utils.data import DataLoader
 
 from net.blocks import Discriminator, Generator
 from net.dataloader import Dataset, Direction, Transformer
+from net.stats import LearningStats
 from net.utils import display, set_grad
 
 logger = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ class Pix2PixTrainer:
         self.weight_path = weight_path
 
         self.train_loader = self._make_data_loader(
-            "train", self.batch_size * 10 if debug_mode else None
+            "train", self.batch_size * 3 if debug_mode else None
         )
         self.val_loader = self._make_data_loader(
             "val", self.batch_size * 2 if debug_mode else None
@@ -59,7 +59,7 @@ class Pix2PixTrainer:
         self.opt_generator = None
         self._optimization_init()
 
-        self.stats = defaultdict(list)
+        self.stats = LearningStats()
         self.last_epoch = 0
 
     def train(self, epochs=10, need_print=False):
@@ -75,15 +75,12 @@ class Pix2PixTrainer:
                 self._step_generator(input, fake_output, target)
                 torch.cuda.empty_cache()
 
-            logger.info(
-                f"Train.. Epoch: {epoch}, last L1 loss:"
-                f" {self.stats['l1'][-1] / self.l1_weight}, last loss real:"
-                f" {self.stats['loss_discriminator_real'][-1]}, last loss fake:"
-                f" {self.stats['loss_discriminator_fake'][-1]}"
-            )
-
+            self.stats.finish_epoch()
             self._validate(epoch, need_print)
             self.last_epoch = epoch + 1
+
+    def plot(self):
+        self.stats.plot()
 
     def _save(self, state):
         filename = os.path.join(self.weight_path, WEIGHT_FILENAME)
@@ -95,15 +92,15 @@ class Pix2PixTrainer:
 
     def _make_data_loader(self, mode, max_items):
         dataset = Dataset(
-            root_dir=self.root_data_dir,
-            dataset=self.dataset_name,
-            mode=mode,
-            direction=self.direction,
-            max_items=max_items,
+            self.root_data_dir,
+            self.dataset_name,
+            mode,
+            self.direction,
+            max_items,
         )
         return DataLoader(
             dataset,
-            batch_size=self.batch_size,
+            self.batch_size,
             shuffle=True,
             num_workers=CPU_COUNT,
             drop_last=True,
@@ -131,13 +128,13 @@ class Pix2PixTrainer:
         pred_real = self.discriminator(real_batch)
         loss_discriminator_real = self.loss_discriminator(pred_real, torch.zeros_like(pred_real))
 
-        loss_discriminator_total = loss_discriminator_fake + loss_discriminator_real
+        loss_discriminator_total = 0.5 * (loss_discriminator_fake + loss_discriminator_real)
         loss_discriminator_total.backward()
         self.opt_discriminator.step()
 
-        self.stats["loss_discriminator_fake"].append(loss_discriminator_fake.item())
-        self.stats["loss_discriminator_real"].append(loss_discriminator_real.item())
-        self.stats["loss_discriminator_total"].append(loss_discriminator_total.item())
+        self.stats.push_iter_metric("discriminator_loss_fake", loss_discriminator_fake.item())
+        self.stats.push_iter_metric("discriminator_loss_real", loss_discriminator_real.item())
+        self.stats.push_iter_metric("discriminator_loss_total", loss_discriminator_total.item())
 
     def _step_generator(self, input, fake_output, target):
         set_grad(self.discriminator, False)
@@ -152,9 +149,9 @@ class Pix2PixTrainer:
         loss_generator.backward()
         self.opt_generator.step()
 
-        self.stats["l1"].append(l1.item())
-        self.stats["loss_generator_GAN"].append(loss_generator_GAN.item())
-        self.stats["loss_generator_total"].append(loss_generator.item())
+        self.stats.push_iter_metric("generator_loss_l1", l1.item())
+        self.stats.push_iter_metric("generator_loss_GAN", loss_generator_GAN.item())
+        self.stats.push_iter_metric("generator_loss_total", loss_generator.item())
 
     def _validate(self, epoch, need_print):
         loss = 0
@@ -168,14 +165,12 @@ class Pix2PixTrainer:
             val_loss = self.L1_loss(output, target)
             loss += val_loss
 
-            logger.debug(f"Validate.. Epoch: {epoch}, iter: {i}, L1 loss: {val_loss.item()}")
             if need_print and i == 0:
                 path = os.path.join(self.weight_path, "images", f"{epoch}.png")
                 display(input[0], output[0], target[0], path)
 
         loss_avg = loss.item() / len(self.val_loader)
-        self.stats["loss_validation"].append(loss_avg)
-        logger.info(f"Validate.. Epoch: {epoch}, epoch loss: {loss_avg}")
+        self.stats.push_metric("generator_loss_l1_validation", loss_avg)
         if loss < self.best_v_loss:
             self.best_v_loss = loss
             self._save(self.generator.state_dict())
@@ -216,7 +211,6 @@ class Pix2Pix:
             if need_display:
                 display(input, output, target)
 
-            logger.debug(f"Test.. Iter: {i}, L1 loss: {test_loss.item()}")
         logger.info(f"Test.. Loss: {t_loss.item() / len(self.test_loader)}")
 
     def transfer_style(self, image_path, need_display=False):

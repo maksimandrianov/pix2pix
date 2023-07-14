@@ -6,10 +6,11 @@ logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(mes
 
 WEIGHT_PATH = "bin"
 DEBUG_MODE = True
-EPOCHS = 10 if DEBUG_MODE else 100
+EPOCHS = 3 if DEBUG_MODE else 100
 
 if __name__ == "__main__":
-    Pix2PixTrainer(".", "map_dataset", Direction.FORWARD, WEIGHT_PATH, DEBUG_MODE).train(
+    p2p = Pix2PixTrainer(".", "map_dataset", Direction.FORWARD, WEIGHT_PATH, DEBUG_MODE).train(
         EPOCHS, True
     )
+    p2p.plot()
     # Pix2Pix(".", "map_dataset", Direction.FORWARD, WEIGHT_PATH, DEBUG_MODE).test(True)

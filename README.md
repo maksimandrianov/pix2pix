@@ -1,5 +1,8 @@
 ## Pix2Pix Network
 
+### Learning process
+![Pix2Pix Training](https://github.com/maksimandrianov/pix2pix/blob/main/bin/0_learn_progress.gif?raw=true)
+
 ### Prepare Weights
 ```sh
 cd bin && ./merge_weight.sh

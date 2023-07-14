@@ -2,6 +2,7 @@ import logging
 import math
 import os
 
+import numpy as np
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
@@ -154,7 +155,7 @@ class Pix2PixTrainer:
         self.stats.push_iter_metric("generator_loss_total", loss_generator.item())
 
     def _validate(self, epoch, need_print):
-        loss = 0
+        loss = []
         self.generator.eval()
         for i, batch in enumerate(self.val_loader):
             input = batch["input"].to(DEV)
@@ -163,13 +164,13 @@ class Pix2PixTrainer:
                 output = self.generator(input)
 
             val_loss = self.L1_loss(output, target)
-            loss += val_loss
+            loss.append(val_loss.item())
 
             if need_print and i == 0:
                 path = os.path.join(self.weight_path, "images", f"{epoch}.png")
                 display(input[0], output[0], target[0], path)
 
-        loss_avg = loss.item() / len(self.val_loader)
+        loss_avg = np.mean(loss)
         self.stats.push_metric("generator_loss_l1_validation", loss_avg)
         if loss < self.best_v_loss:
             self.best_v_loss = loss

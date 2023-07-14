@@ -98,7 +98,7 @@ class Pix2PixTrainer:
             )
 
             self._validate(epoch, need_print)
-            self.last_epoch = epoch
+            self.last_epoch = epoch + 1
 
     def _save(self, state):
         filename = os.path.join(self.weight_path, WEIGHT_FILENAME)

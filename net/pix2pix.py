@@ -40,9 +40,9 @@ class Pix2PixTrainer:
         dataset_name,
         direction: Direction,
         weight_path,
-        test_mode=False,
+        debug_mode=False,
     ):
-        self.test_mode = test_mode
+        self.debug_mode = debug_mode
         self.root_data_dir = root_data_dir
         self.dataset_name = dataset_name
         self.direction = direction
@@ -50,10 +50,10 @@ class Pix2PixTrainer:
         self.weight_path = weight_path
 
         self.train_loader = self._make_data_loader(
-            "train", self.batch_size * 10 if test_mode else None, test_mode
+            "train", self.batch_size * 10 if debug_mode else None, debug_mode
         )
         self.val_loader = self._make_data_loader(
-            "val", self.batch_size * 2 if test_mode else None, test_mode
+            "val", self.batch_size * 2 if debug_mode else None, debug_mode
         )
 
         self.generator = Generator(IN_CHANNELS, OUT_CHANNELS, FILTERS).to(DEV)
@@ -107,14 +107,14 @@ class Pix2PixTrainer:
         logger.info(f"Saving weights to {filename}..")
         torch.save(state, filename)
 
-    def _make_data_loader(self, mode, max_items, test_mode):
+    def _make_data_loader(self, mode, max_items, debug_mode):
         dataset = Dataset(
             root_dir=self.root_data_dir,
             dataset=self.dataset_name,
             mode=mode,
             direction=self.direction,
             max_items=max_items,
-            test_mode=test_mode,
+            debug_mode=debug_mode,
         )
         return DataLoader(
             dataset,
@@ -204,14 +204,14 @@ class Pix2Pix:
         dataset_name,
         direction: Direction,
         weight_path,
-        test_mode,
+        debug_mode,
     ):
-        self.test_mode = test_mode
+        self.debug_mode = debug_mode
         self.root_data_dir = root_data_dir
         self.dataset_name = dataset_name
         self.direction = direction
         self.weight_path = weight_path
-        self.test_loader = self._dataset_init(test_mode)
+        self.test_loader = self._dataset_init(debug_mode)
 
         self.generator = Generator(IN_CHANNELS, OUT_CHANNELS, FILTERS)
         self._load(self.generator)
@@ -236,7 +236,7 @@ class Pix2Pix:
         logger.info(f"Test.. Loss: {t_loss.item() / len(self.test_loader)}")
 
     def transfer_style(self, image_path, need_display=False):
-        transformer = Transformer(self.test_mode)
+        transformer = Transformer(self.debug_mode)
         input = transformer(image_path).to(DEV)
         with torch.no_grad():
             output = self.generator(input)
@@ -244,13 +244,13 @@ class Pix2Pix:
         if need_display:
             display(input, output)
 
-    def _dataset_init(self, test_mode):
+    def _dataset_init(self, debug_mode):
         test_dataset = Dataset(
             root_dir=self.root_data_dir,
             dataset=self.dataset_name,
             mode="test",
             direction=self.direction,
-            test_mode=test_mode,
+            debug_mode=debug_mode,
         )
         return DataLoader(test_dataset, batch_size=1, shuffle=True, num_workers=CPU_COUNT)
 

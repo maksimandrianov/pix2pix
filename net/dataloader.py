@@ -17,10 +17,10 @@ class Direction(Enum):
 
 
 class Transformer:
-    def __init__(self, test_mode):
+    def __init__(self, debug_mode):
         self.transform = transforms.Compose(
             [
-                transforms.CenterCrop((256, 256) if test_mode else (512, 512)),
+                transforms.CenterCrop((256, 256) if debug_mode else (512, 512)),
                 transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             ]
@@ -38,10 +38,10 @@ class Dataset(TDataset):
         mode="train",
         direction=Direction.FORWARD,
         max_items=None,
-        test_mode=False,
+        debug_mode=False,
     ):
         self.direction = direction
-        self.transformer = Transformer(test_mode)
+        self.transformer = Transformer(debug_mode)
         file_path = os.path.join(root_dir, dataset)
         file_path_mode = os.path.join(file_path, mode)
 

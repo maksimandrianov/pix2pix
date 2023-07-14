@@ -57,7 +57,7 @@ class Generator(nn.Module):
         )
         self.last = nn.Sequential(
             nn.ConvTranspose2d(filters * 2, output_channels, 4, 2, 1),
-            nn.Sigmoid(),
+            nn.Tanh(),
         )
 
     def forward(self, x):
@@ -78,21 +78,14 @@ class Generator(nn.Module):
 class Discriminator(nn.Module):
     def __init__(self, input_channels, filters):
         super(Discriminator, self).__init__()
-        layers = 2
-        sequence = [
-            nn.Conv2d(input_channels, filters, 4, 2, 1),
-            nn.LeakyReLU(0.2),
-        ]
+        layers = 3
+        sequence = [DownSampleBlock(input_channels, filters)]
 
         mult = 1
         mult_prev = 1
         for n in range(1, layers):
             mult_prev, mult = mult, min(2**n, 8)
-            sequence += [
-                nn.Conv2d(filters * mult_prev, filters * mult, 4, 2, 1),
-                nn.BatchNorm2d(filters * mult),
-                nn.LeakyReLU(0.2),
-            ]
+            sequence.append(DownSampleBlock(filters * mult_prev, filters * mult))
 
         mult_prev, mult = mult, min(2**layers, 8)
         sequence += [

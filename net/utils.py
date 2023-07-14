@@ -60,6 +60,7 @@ def display(input_img, output_img, target_img=None, path=None, epoch=None, only_
         os.makedirs(os.path.dirname(path), exist_ok=True)
         fig.savefig(path)
 
-    plt.close(fig)
-    if not only_save:
+    if only_save:
+        plt.close(fig)
+    else:
         plt.show()

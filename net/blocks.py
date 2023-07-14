@@ -63,7 +63,6 @@ class Generator(nn.Module):
     def forward(self, x):
         skip_conns = []
         for encode in self.encoder:
-            print(encode)
             x = encode(x)
             skip_conns.append(x)
 

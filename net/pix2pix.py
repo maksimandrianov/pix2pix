@@ -184,14 +184,12 @@ class Pix2Pix:
         dataset_name,
         direction: Direction,
         weight_path,
-        debug_mode,
     ):
-        self.debug_mode = debug_mode
         self.root_data_dir = root_data_dir
         self.dataset_name = dataset_name
         self.direction = direction
         self.weight_path = weight_path
-        self.test_loader = self._dataset_init(debug_mode)
+        self.test_loader = self._dataset_init()
 
         self.generator = Generator(IN_CHANNELS, OUT_CHANNELS, FILTERS)
         self._load(self.generator)
@@ -215,7 +213,7 @@ class Pix2Pix:
         logger.info(f"Test.. Loss: {t_loss.item() / len(self.test_loader)}")
 
     def transfer_style(self, image_path, need_display=False):
-        transformer = Transformer(self.debug_mode)
+        transformer = Transformer()
         input = transformer(image_path).to(DEV)
         with torch.no_grad():
             output = self.generator(input)
@@ -223,13 +221,14 @@ class Pix2Pix:
         if need_display:
             display(input, output)
 
-    def _dataset_init(self, debug_mode):
+        return output
+
+    def _dataset_init(self):
         test_dataset = Dataset(
             root_dir=self.root_data_dir,
             dataset=self.dataset_name,
             mode="test",
-            direction=self.direction,
-            debug_mode=debug_mode,
+            direction=self.direction
         )
         return DataLoader(test_dataset, batch_size=1, shuffle=True, num_workers=CPU_COUNT)
 

@@ -16,6 +16,7 @@ See [scrapper/data_scrapper.py](https://github.com/maksimandrianov/pix2pix/blob/
 ### Prepare Weights
 ```sh
 cd bin && ./merge_weight.sh
+mv _weight.tar weight.tar
 ```
 
 ### Usage

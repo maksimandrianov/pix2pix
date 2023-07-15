@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 mkdir -p weight_parts
 rm -rf weight_parts/* && cp weight.tar weight_parts

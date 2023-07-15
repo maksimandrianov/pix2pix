@@ -49,8 +49,8 @@ class Generator(nn.Module):
             UpSampleBlock(filters * 8, filters * 8, drop_out=True),
             UpSampleBlock(filters * 16, filters * 8, drop_out=True),
             UpSampleBlock(filters * 16, filters * 8, drop_out=True),
-            UpSampleBlock(filters * 16, filters * 8),
-            UpSampleBlock(filters * 16, filters * 4),
+            UpSampleBlock(filters * 16, filters * 8, drop_out=True),
+            UpSampleBlock(filters * 16, filters * 4, drop_out=True),
             UpSampleBlock(filters * 8, filters * 2),
             UpSampleBlock(filters * 4, filters),
             nn.Module(),  # Is not used

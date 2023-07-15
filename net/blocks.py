@@ -78,7 +78,7 @@ class Generator(nn.Module):
 class Discriminator(nn.Module):
     def __init__(self, input_channels, filters):
         super(Discriminator, self).__init__()
-        layers = 3
+        layers = 2
         sequence = [
             nn.Conv2d(input_channels, filters, 4, 2, 1, bias=False),
             nn.LeakyReLU(0.2, True),

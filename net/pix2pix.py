@@ -130,8 +130,8 @@ class Pix2PixTrainer:
             self.opt_discriminator, milestones=milestones, gamma=0.5
         )
 
-        self.loss_generator = nn.BCEWithLogitsLoss().to(DEV)
-        self.loss_discriminator = nn.BCEWithLogitsLoss().to(DEV)
+        self.loss_generator = nn.BCELoss().to(DEV)
+        self.loss_discriminator = nn.BCELoss().to(DEV)
 
     def _step_discriminator(self, input, fake_output, target, i):
         set_grad(self.discriminator, True)

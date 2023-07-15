@@ -122,7 +122,7 @@ class Pix2PixTrainer:
             self.discriminator.parameters(), lr=self.learning_rate, betas=(0.5, 0.999)
         )
 
-        milestones = [10, 20, 50] + list(range(50, 30 * 3, 30))
+        milestones = [10, 20, 40] + list(range(40, 30 * 3, 30))
         self.lr_scheduler_generator = lr_scheduler.MultiStepLR(
             self.opt_generator, milestones=milestones, gamma=0.5
         )

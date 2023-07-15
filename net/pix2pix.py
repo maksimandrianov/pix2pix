@@ -54,7 +54,7 @@ class Pix2PixTrainer:
 
         self.learning_rate = 1e-4
         self.L1_loss = nn.L1Loss()
-        self.l1_weight = 50
+        self.l1_weight = 100
         self.best_v_loss = math.inf
         self.loss_discriminator = None
         self.loss_generator = None

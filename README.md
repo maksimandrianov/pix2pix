@@ -2,6 +2,7 @@
 
 ### Learning process
 Images from the validation dataset at different epochs
+![Pix2Pix Training](https://github.com/maksimandrianov/pix2pix/blob/main/bin/1_progress.gif?raw=true)
 ![Pix2Pix Training](https://github.com/maksimandrianov/pix2pix/blob/main/bin/2_progress.gif?raw=true)
 
 ![Pix2Pix Metrics1](https://github.com/maksimandrianov/pix2pix/blob/main/bin/metrics1.png?raw=true)

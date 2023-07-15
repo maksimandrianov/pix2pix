@@ -53,7 +53,7 @@ class Pix2PixTrainer:
         self.generator = Generator(IN_CHANNELS, OUT_CHANNELS, FILTERS).to(DEV)
         self.discriminator = Discriminator(IN_CHANNELS + OUT_CHANNELS, FILTERS).to(DEV)
 
-        self.learning_rate = 1e-4
+        self.learning_rate = 1e-3
         self.L1_loss = nn.L1Loss()
         self.l1_weight = 100
         self.best_v_loss = math.inf

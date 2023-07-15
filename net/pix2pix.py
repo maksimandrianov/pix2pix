@@ -136,11 +136,11 @@ class Pix2PixTrainer:
         fake_batch = torch.cat((input, fake_output), 1)
         fake_batch = fake_batch.detach()
         pred_fake = self.discriminator(fake_batch)
-        loss_discriminator_fake = self.loss_discriminator(pred_fake, torch.zeros_like(pred_fake))
+        loss_discriminator_fake = self.loss_discriminator(torch.zeros_like(pred_fake), pred_fake)
 
         real_batch = torch.cat((input, target), 1)
         pred_real = self.discriminator(real_batch)
-        loss_discriminator_real = self.loss_discriminator(pred_real, torch.ones_like(pred_real))
+        loss_discriminator_real = self.loss_discriminator(torch.ones_like(pred_real), pred_real)
 
         loss_discriminator_total = 0.5 * (loss_discriminator_fake + loss_discriminator_real)
         loss_discriminator_total.backward()

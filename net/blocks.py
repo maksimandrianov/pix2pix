@@ -22,7 +22,7 @@ class UpSampleBlock(nn.Module):
             nn.BatchNorm2d(out_channels),
         ]
         if drop_out:
-            sequence += [nn.Dropout(0.5)]
+            sequence += [nn.Dropout(0.3)]
 
         sequence += [nn.LeakyReLU(0.2)]
         self.sequence = nn.Sequential(*sequence)
@@ -96,7 +96,6 @@ class Discriminator(nn.Module):
             nn.BatchNorm2d(filters * mult),
             nn.LeakyReLU(0.2, True),
             nn.Conv2d(filters * mult, 1, 4, 1, 1),
-            nn.Sigmoid(),
         ]
         self.sequence = nn.Sequential(*sequence)
 

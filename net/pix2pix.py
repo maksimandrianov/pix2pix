@@ -47,7 +47,7 @@ class Pix2PixTrainer:
         self.val_loader = self._make_data_loader(
             "val", self.batch_size * 2 if debug_mode else None
         )
-        self.demo_loader = self._make_data_loader("test", self.batch_size, False, False)
+        self.demo_loader = self._make_data_loader("test", self.batch_size, False, False, False)
 
         self.generator = Generator(IN_CHANNELS, OUT_CHANNELS, FILTERS).to(DEV)
         self.discriminator = Discriminator(IN_CHANNELS + OUT_CHANNELS, FILTERS).to(DEV)
@@ -98,13 +98,14 @@ class Pix2PixTrainer:
         logger.info(f"Saving weights to {filename}..")
         torch.save(state, filename)
 
-    def _make_data_loader(self, mode, max_items, drop_last=True, shuffle=True):
+    def _make_data_loader(self, mode, max_items, drop_last=True, shuffle=True, random_crop=True):
         dataset = Dataset(
             self.root_data_dir,
             self.dataset_name,
             mode,
             self.direction,
             max_items,
+            random_crop
         )
         return DataLoader(
             dataset,
@@ -122,7 +123,7 @@ class Pix2PixTrainer:
             self.discriminator.parameters(), lr=self.learning_rate, betas=(0.5, 0.999)
         )
 
-        milestones = [10, 20, 40] + list(range(40, 30 * 3, 30))
+        milestones = [10, 25, 50] + list(range(40, 30 * 3, 30))
         self.lr_scheduler_generator = lr_scheduler.MultiStepLR(
             self.opt_generator, milestones=milestones, gamma=0.5
         )
@@ -130,8 +131,8 @@ class Pix2PixTrainer:
             self.opt_discriminator, milestones=milestones, gamma=0.5
         )
 
-        self.loss_generator = nn.BCELoss().to(DEV)
-        self.loss_discriminator = nn.BCELoss().to(DEV)
+        self.loss_generator = nn.BCEWithLogitsLoss().to(DEV)
+        self.loss_discriminator = nn.BCEWithLogitsLoss().to(DEV)
 
     def _step_discriminator(self, input, fake_output, target, i):
         set_grad(self.discriminator, True)
@@ -257,6 +258,7 @@ class Pix2Pix:
             dataset=self.dataset_name,
             mode="test",
             direction=self.direction,
+            random_crop=False
         )
         return DataLoader(test_dataset, batch_size=1, shuffle=True, num_workers=CPU_COUNT)
 

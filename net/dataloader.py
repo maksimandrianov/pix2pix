@@ -23,7 +23,7 @@ class Transformer:
     def __init__(self, random_crop=True):
         self.random_crop = random_crop
         transform_list = [
-            transforms.Resize((312, 312)),
+            transforms.Resize((312, 312), transforms.InterpolationMode.BICUBIC),
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
         ]

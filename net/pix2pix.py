@@ -100,12 +100,7 @@ class Pix2PixTrainer:
 
     def _make_data_loader(self, mode, max_items, drop_last=True, shuffle=True, random_crop=True):
         dataset = Dataset(
-            self.root_data_dir,
-            self.dataset_name,
-            mode,
-            self.direction,
-            max_items,
-            random_crop
+            self.root_data_dir, self.dataset_name, mode, self.direction, max_items, random_crop
         )
         return DataLoader(
             dataset,
@@ -123,7 +118,7 @@ class Pix2PixTrainer:
             self.discriminator.parameters(), lr=self.learning_rate, betas=(0.5, 0.999)
         )
 
-        milestones = [10, 25, 50] + list(range(40, 30 * 3, 30))
+        milestones = [10, 25, 50, 75, 100]
         self.lr_scheduler_generator = lr_scheduler.MultiStepLR(
             self.opt_generator, milestones=milestones, gamma=0.5
         )
@@ -258,7 +253,7 @@ class Pix2Pix:
             dataset=self.dataset_name,
             mode="test",
             direction=self.direction,
-            random_crop=False
+            random_crop=False,
         )
         return DataLoader(test_dataset, batch_size=1, shuffle=True, num_workers=CPU_COUNT)
 

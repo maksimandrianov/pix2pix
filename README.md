@@ -2,7 +2,15 @@
 
 ### Learning process
 Images from the validation dataset at different epochs
-![Pix2Pix Training](https://github.com/maksimandrianov/pix2pix/blob/main/bin/0_learn_progress.gif?raw=true)
+![Pix2Pix Training](https://github.com/maksimandrianov/pix2pix/blob/main/bin/2_progress.gif?raw=true)
+
+![Pix2Pix Metrics1](https://github.com/maksimandrianov/pix2pix/blob/main/bin/metrics1.png?raw=true)
+![Pix2Pix Metrics2](https://github.com/maksimandrianov/pix2pix/blob/main/bin/metrics2.png?raw=true)
+
+### Dataset
+
+It uses its own dataset of satellite images from Bing and map schemes from OSM.
+See [scrapper/data_scrapper.py](https://github.com/maksimandrianov/pix2pix/blob/main/scrapper/data_scrapper.py)
 
 ### Prepare Weights
 ```sh

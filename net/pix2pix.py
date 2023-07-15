@@ -180,7 +180,7 @@ class Pix2PixTrainer:
             val_loss = self.L1_loss(output, target)
             loss.append(val_loss.item())
 
-            if need_print and i == 0:
+            if need_print and i == 0 and epoch % 5 == 0:
                 path = os.path.join(self.weight_path, "images", f"{epoch}.png")
                 display(input[0], output[0], target[0], path, epoch)
 

@@ -53,7 +53,7 @@ class Pix2PixTrainer:
         self.generator = Generator(IN_CHANNELS, OUT_CHANNELS, FILTERS).to(DEV)
         self.discriminator = Discriminator(IN_CHANNELS + OUT_CHANNELS, FILTERS).to(DEV)
 
-        self.learning_rate = 1e-3
+        self.learning_rate = 5e-4
         self.L1_loss = nn.L1Loss()
         self.l1_weight = 100
         self.best_v_loss = math.inf
@@ -121,10 +121,10 @@ class Pix2PixTrainer:
 
         milestones = [10, 25, 50, 75, 100]
         self.lr_scheduler_generator = lr_scheduler.MultiStepLR(
-            self.opt_generator, milestones=milestones, gamma=0.5
+            self.opt_generator, milestones=milestones, gamma=0.7
         )
         self.lr_scheduler_discriminator = lr_scheduler.MultiStepLR(
-            self.opt_discriminator, milestones=milestones, gamma=0.5
+            self.opt_discriminator, milestones=milestones, gamma=0.7
         )
 
         self.loss_generator = GANLoss().to(DEV)

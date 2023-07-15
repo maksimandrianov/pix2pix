@@ -79,7 +79,10 @@ class Discriminator(nn.Module):
     def __init__(self, input_channels, filters):
         super(Discriminator, self).__init__()
         layers = 3
-        sequence = [DownSampleBlock(input_channels, filters)]
+        sequence = [
+            nn.Conv2d(input_channels, filters, 4, 2, 1, bias=False),
+            nn.LeakyReLU(0.2, True),
+        ]
 
         mult = 1
         mult_prev = 1

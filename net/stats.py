@@ -3,12 +3,21 @@ from collections import defaultdict
 
 import matplotlib.pyplot as plt
 import numpy as np
+from cycler import cycler
 
 from net.utils import rescale
 
 logger = logging.getLogger(__name__)
 
 ITER_PREFIX = "__"
+
+plt.rc("lines", linewidth=4)
+plt.rc(
+    "axes",
+    prop_cycle=(
+        cycler("color", ["r", "g", "b", "y"]) + cycler("linestyle", ["-", "--", ":", "-."])
+    ),
+)
 
 
 class LearningStats:
@@ -42,39 +51,30 @@ class LearningStats:
     def _plot(self, from_=0):
         epochs = len(self.stats["generator_loss_l1"])
         indexes = range(from_, epochs)
-        plt.plot(
-            indexes,
-            rescale(self.stats["generator_loss_l1"][from_:]),
-            color="r",
-            label="generator_loss_l1",
-        )
-        plt.plot(
-            indexes,
-            rescale(self.stats["generator_loss_l1_validation"][from_:]),
-            color="g",
-            label="generator_loss_l1_validation",
-        )
+        for k, v in self.stats.items():
+            if k.startswith("generator"):
+                plt.plot(
+                    indexes,
+                    rescale(v[from_:]),
+                    label=k,
+                )
+
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
-        plt.title(f"Learning and Validation {from_}-{epochs}")
+        plt.title(f"Generator metrics {from_}-{epochs}")
         plt.legend()
         plt.show()
 
-        plt.plot(
-            indexes,
-            self.stats["discriminator_loss_real"][from_:],
-            color="r",
-            label="discriminator_loss_real",
-        )
-        plt.plot(
-            indexes,
-            self.stats["discriminator_loss_fake"][from_:],
-            color="g",
-            label="discriminator_loss_fake",
-        )
+        for k, v in self.stats.items():
+            if k.startswith("discriminator"):
+                plt.plot(
+                    indexes,
+                    rescale(v[from_:]),
+                    label=k,
+                )
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
-        plt.title(f"Real and Fake {from_}-{epochs}")
+        plt.title(f"Discriminator {from_}-{epochs}")
         plt.legend()
         plt.show()
 

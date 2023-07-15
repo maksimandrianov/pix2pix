@@ -5,6 +5,7 @@ import os
 import numpy as np
 import torch
 from torch import nn
+from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader
 
 from net.blocks import Discriminator, Generator
@@ -51,7 +52,7 @@ class Pix2PixTrainer:
         self.generator = Generator(IN_CHANNELS, OUT_CHANNELS, FILTERS).to(DEV)
         self.discriminator = Discriminator(IN_CHANNELS + OUT_CHANNELS, FILTERS).to(DEV)
 
-        self.learning_rate = 1e-4
+        self.learning_rate = 1e-3
         self.L1_loss = nn.L1Loss()
         self.l1_weight = 100
         self.best_v_loss = math.inf
@@ -59,6 +60,8 @@ class Pix2PixTrainer:
         self.loss_generator = None
         self.opt_discriminator = None
         self.opt_generator = None
+        self.lr_scheduler_discriminator = None
+        self.lr_scheduler_generator = None
         self._optimization_init()
 
         self.stats = LearningStats()
@@ -80,6 +83,8 @@ class Pix2PixTrainer:
             self.stats.finish_epoch()
             self._validate(epoch, need_print)
             self._make_demo(epoch)
+            self.lr_scheduler_generator.step()
+            self.lr_scheduler_discriminator.step()
             self.last_epoch = epoch + 1
 
     def plot(self):
@@ -115,6 +120,13 @@ class Pix2PixTrainer:
         )
         self.opt_discriminator = torch.optim.Adam(
             self.discriminator.parameters(), lr=self.learning_rate, betas=(0.5, 0.999)
+        )
+
+        self.lr_scheduler_generator = lr_scheduler.MultiStepLR(
+            self.opt_generator, milestones=list(range(10, 1000, 30)), gamma=0.5
+        )
+        self.lr_scheduler_discriminator = lr_scheduler.MultiStepLR(
+            self.opt_discriminator, milestones=list(range(10, 1000, 30)), gamma=0.5
         )
 
         self.loss_generator = nn.BCEWithLogitsLoss().to(DEV)

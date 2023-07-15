@@ -56,7 +56,7 @@ class LearningStats:
         )
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
-        plt.title(f"Learning and Validation {indexes}-{epochs}")
+        plt.title(f"Learning and Validation {from_}-{epochs}")
         plt.legend()
         plt.show()
 
@@ -74,7 +74,7 @@ class LearningStats:
         )
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
-        plt.title(f"Real and Fake {indexes}-{epochs}")
+        plt.title(f"Real and Fake {from_}-{epochs}")
         plt.legend()
         plt.show()
 

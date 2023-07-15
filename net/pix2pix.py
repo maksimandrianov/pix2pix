@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader
 
 from net.blocks import Discriminator, Generator
 from net.dataloader import Dataset, Direction, Transformer
+from net.loss import GANLoss
 from net.stats import LearningStats
 from net.utils import display, set_grad
 
@@ -126,8 +127,8 @@ class Pix2PixTrainer:
             self.opt_discriminator, milestones=milestones, gamma=0.5
         )
 
-        self.loss_generator = nn.BCEWithLogitsLoss().to(DEV)
-        self.loss_discriminator = nn.BCEWithLogitsLoss().to(DEV)
+        self.loss_generator = GANLoss().to(DEV)
+        self.loss_discriminator = GANLoss().to(DEV)
 
     def _step_discriminator(self, input, fake_output, target, i):
         set_grad(self.discriminator, True)
@@ -136,11 +137,11 @@ class Pix2PixTrainer:
         fake_batch = torch.cat((input, fake_output), 1)
         fake_batch = fake_batch.detach()
         pred_fake = self.discriminator(fake_batch)
-        loss_discriminator_fake = self.loss_discriminator(torch.zeros_like(pred_fake), pred_fake)
+        loss_discriminator_fake = self.loss_discriminator(pred_fake, False)
 
         real_batch = torch.cat((input, target), 1)
         pred_real = self.discriminator(real_batch)
-        loss_discriminator_real = self.loss_discriminator(torch.ones_like(pred_real), pred_real)
+        loss_discriminator_real = self.loss_discriminator(pred_real, True)
 
         loss_discriminator_total = 0.5 * (loss_discriminator_fake + loss_discriminator_real)
         loss_discriminator_total.backward()
@@ -156,7 +157,7 @@ class Pix2PixTrainer:
 
         fake_batch = torch.cat((input, fake_output), 1)
         pred_fake = self.discriminator(fake_batch)
-        loss_generator_GAN = self.loss_generator(pred_fake, torch.ones_like(pred_fake))
+        loss_generator_GAN = self.loss_generator(pred_fake, True)
         l1 = self.L1_loss(fake_output, target) * self.l1_weight
         loss_generator = l1 + loss_generator_GAN
 

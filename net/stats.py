@@ -27,7 +27,7 @@ class LearningStats:
 
     def finish_epoch(self, need_print=True):
         self._calc_avg()
-        if need_print:
+        if need_print and self.epoch % 5 == 0:
             log_str = f"Epoch: {self.epoch}, "
             log_str += ", ".join(
                 [f"{k}: {v[-1]}" for k, v in self.stats.items() if not k.startswith(ITER_PREFIX)]

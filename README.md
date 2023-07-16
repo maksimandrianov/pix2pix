@@ -1,7 +1,7 @@
 ## Pix2Pix Network
 
 ### Learning process
-Images from the validation dataset at different epochs
+Images from the test dataset at different epochs
 ![Pix2Pix Training](https://github.com/maksimandrianov/pix2pix/blob/main/bin/1_progress.gif?raw=true)
 ![Pix2Pix Training](https://github.com/maksimandrianov/pix2pix/blob/main/bin/2_progress.gif?raw=true)
 
